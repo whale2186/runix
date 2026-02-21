@@ -11,7 +11,10 @@ This project demonstrates cooperative multitasking, a simple scripting engine, w
 ---
 ## Showcase
 
-![Video](https://raw.githubusercontent.com/whale2186/runix/refs/heads/main/res/showcase.mp4)
+<video width="800" controls>
+  <source src="https://raw.githubusercontent.com/whale2186/runix/refs/heads/main/res/showcase.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 ---
 
 ## Repository contents
