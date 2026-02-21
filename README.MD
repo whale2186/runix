@@ -50,8 +50,8 @@ Key components:
    - `WebServer.h` (ESP32 core)
    - `ArduinoOTA.h`
    - `LittleFS.h` and `FS.h`
-4. Copy `espos.ino` into your Arduino sketch folder (or open it in PlatformIO).
-5. Edit Wi‑Fi credentials at the top of `espos.ino`:
+4. Copy `runix.ino` into your Arduino sketch folder (or open it in PlatformIO).
+5. Edit Wi‑Fi credentials at the top of `runix.ino`:
    ```cpp
    const char* SSID = "your-ssid";
    const char* PASSWORD = "your-password";
