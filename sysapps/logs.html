@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Log Viewer</title>
+    <style>
+      body {
+        background: #111;
+        color: #0f0;
+        font-family: monospace;
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      header {
+        padding: 0.5em;
+        background: #222;
+        border-bottom: 1px solid #0f0;
+      }
+      #log {
+        flex: 1;
+        white-space: pre-wrap;
+        overflow-y: auto;
+        padding: 1em;
+      }
+      #terminal {
+        border-top: 1px solid #0f0;
+        padding: 0.5em;
+        display: flex;
+      }
+      #prompt {
+        margin-right: 0.5em;
+      }
+      #input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        outline: none;
+        color: #0f0;
+        font-family: monospace;
+        font-size: 1em;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h2 style="margin: 0">&gt; Live Logs Terminal</h2>
+    </header>
+    <div id="log"></div>
+    <div id="terminal">
+      <span id="prompt">$</span>
+      <input
+        type="text"
+        id="input"
+        autocomplete="off"
+        autofocus
+        placeholder="Enter command and press Enter"
+      />
+    </div>
+    <script>
+      const logEl = document.getElementById("log");
+      const inputEl = document.getElementById("input");
+      var currentDir = "/";
+      let prevLog = "";
+
+      function getOperator() {
+        operator = currentDir != "/" ? "/" : "";
+        return operator;
+      }
+      // Periodically fetch logs
+      setInterval(async () => {
+        try {
+          const res = await fetch("/logs");
+          const text = await res.text();
+          if (text !== prevLog) {
+            const diff = text.slice(prevLog.length);
+            if (diff.trim()) {
+              logEl.innerText += "\n" + diff;
+              logEl.scrollTop = logEl.scrollHeight;
+            }
+            prevLog = text;
+          }
+        } catch (e) {
+          console.error("Log fetch error", e);
+        }
+      }, 1000);
+
+      // Handle command input
+      inputEl.addEventListener("keydown", async (e) => {
+        if (e.key === "Enter" && inputEl.value.trim()) {
+          const cmd = inputEl.value.trim();
+          // Echo command in log
+          logEl.innerText += "\n$ " + cmd;
+          logEl.scrollTop = logEl.scrollHeight;
+          // Send to server
+          if (cmd != "cd" && cmd.slice(0, 2) == "cd") {
+            changeDirectory(cmd.slice(3));
+          } else if (cmd == "cd") {
+            currentDir = "/";
+            changeDirectory(currentDir);
+          } else if (cmd == "ls") {
+            listFiles();
+          } else if (cmd == "pwd") {
+            try {
+              await fetch(
+                `/runcommand?command=logmsg(${encodeURIComponent(currentDir)})`
+              );
+            } catch (err) {
+              logEl.innerText += "\n[Error sending command]";
+            }
+          } else if (cmd.slice(0, 5) == "mkdir") {
+            mkdir(cmd.slice(6));
+          } else if (cmd == "clearlogs()") {
+            try {
+              await fetch(`/runcommand?command=${encodeURIComponent(cmd)}`);
+            } catch (err) {
+              logEl.innerText += "\n[Error sending command]";
+            }
+            window.location.reload();
+          } else if (cmd.slice(0, 2) == "rm") {
+            rmfile(cmd.slice(3));
+          } else if (cmd.slice(0, 2) == "./" && cmd.includes(".run")) {
+            runscript(cmd.slice(2));
+          } else if (cmd.slice(0, 3) == "cat") {
+            try {
+              const response = await fetch(
+                `/open?path=${encodeURIComponent(
+                  currentDir + getOperator() + cmd.slice(4)
+                )}`
+              );
+              const extracted = await response.text();
+              fetch(
+                `/runcommand?command=logmsg(${encodeURIComponent(extracted)})`
+              );
+            } catch (err) {
+              logEl.innerText += "\n[Error sending command]";
+            }
+          } else {
+            try {
+              await fetch(`/runcommand?command=${encodeURIComponent(cmd)}`);
+            } catch (err) {
+              logEl.innerText += "\n[Error sending command]";
+            }
+          }
+          inputEl.value = "";
+        }
+      });
+
+      function listFiles() {
+        fetch("/list?dir=" + encodeURIComponent(currentDir))
+          .then((r) => r.json())
+          .then((data) => {
+            data.forEach((item) => {
+              icon = item.isDir ? "📁" : "📄";
+              finalName = icon + item.name + "\n";
+              try {
+                fetch(
+                  `/runcommand?command=logmsg(${encodeURIComponent(finalName)})`
+                );
+              } catch (err) {
+                logEl.innerText += "\n[Error sending command]";
+              }
+            });
+          });
+      }
+
+      function rmfile(filename) {
+        completepath = currentDir + getOperator() + filename.trim();
+        try {
+          fetch(
+            `/runcommand?command=rm("${encodeURIComponent(completepath)}")`
+          );
+          fetch(
+            `/runcommand?command=logmsg("File Deleted Sucessfully : ${encodeURIComponent(
+              completepath
+            )}")`
+          );
+        } catch (err) {
+          logEl.innerText += "\n[Error sending command]";
+        }
+      }
+
+      function changeDirectory(directory) {
+        cddir = directory.trim();
+        if (cddir.startsWith("/")) currentDir = cddir;
+        else if (cddir == "..") {
+          if (currentDir.indexOf("/", 1) == "-1") currentDir = "/";
+          else {
+            dirindex = currentDir.indexOf("/", 1);
+            currentDir = currentDir.slice(0, dirindex);
+          }
+        } else if (currentDir.length > 1) currentDir = currentDir + "/" + cddir;
+        else currentDir = currentDir + cddir;
+        try {
+          fetch(
+            `/runcommand?command=logmsg("Changed Directory to : ${encodeURIComponent(
+              currentDir
+            )}")`
+          );
+        } catch (err) {
+          logEl.innerText += "\n[Error sending command]";
+        }
+      }
+
+      function mkdir(dirname) {
+        completedirectory = currentDir + getOperator() + dirname;
+        try {
+          fetch(`/mkdir?path=${encodeURIComponent(completedirectory)}`);
+          fetch(
+            `/runcommand?command=logmsg("Created Directory  : ${encodeURIComponent(
+              completedirectory
+            )}")`
+          );
+        } catch (err) {
+          logEl.innerText += "\n[Error sending command]";
+        }
+      }
+
+      function runscript(scriptname) {
+        scriptlocation = currentDir + getOperator() + scriptname;
+        try {
+          fetch(
+            `/runcommand?command=logmsg("Excecuting Script : ${encodeURIComponent(
+              scriptlocation
+            )}")`
+          );
+          fetch(`/runscript?script=${encodeURIComponent(scriptlocation)}`);
+        } catch (err) {
+          logEl.innerText += "\n[Error sending command]";
+        }
+      }
+    </script>
+  </body>
+</html>

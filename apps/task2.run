@@ -1,0 +1,5 @@
+logmsg(Task2 Start)
+delayms(500)
+logmsg(Task2 Fast Step)
+delayms(2000)
+logmsg(Task2 End)

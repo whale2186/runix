@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>System Monitor</title>
+
+<style>
+body {
+  background:#121212;
+  color:#e0e0e0;
+  font-family:sans-serif;
+  padding:20px;
+}
+
+h2 { margin-bottom:15px; }
+
+.card {
+  background:#1e1e1e;
+  padding:15px;
+  border-radius:10px;
+  margin-bottom:15px;
+}
+
+.stat {
+  margin-bottom:10px;
+}
+
+.bar {
+  width:100%;
+  height:10px;
+  background:#333;
+  border-radius:5px;
+  overflow:hidden;
+}
+
+.fill {
+  height:100%;
+  background:#bb86fc;
+  width:0%;
+  transition:0.3s;
+}
+
+table {
+  width:100%;
+  border-collapse:collapse;
+}
+
+th, td {
+  padding:8px;
+  border-bottom:1px solid #333;
+}
+
+th { color:#bb86fc; }
+
+button {
+  background:#bb86fc;
+  border:none;
+  padding:5px 10px;
+  border-radius:5px;
+  cursor:pointer;
+}
+
+button:hover { background:#9a67ea; }
+</style>
+</head>
+
+<body>
+
+<h2>📊 System Monitor</h2>
+
+<div class="card">
+
+  <div class="stat">
+    <b>Heap Memory</b>
+    <div id="heapText"></div>
+    <div class="bar"><div id="heapBar" class="fill"></div></div>
+  </div>
+
+  <div class="stat">
+    <b>Disk Usage</b>
+    <div id="diskText"></div>
+    <div class="bar"><div id="diskBar" class="fill"></div></div>
+  </div>
+
+  <div class="stat">
+    <b>System</b>
+    <div id="sysText"></div>
+  </div>
+
+</div>
+
+<div class="card">
+<table>
+<tr>
+<th>ID</th>
+<th>Script</th>
+<th>Status</th>
+<th>CPU %</th>
+<th>Action</th>
+</tr>
+<tbody id="tasks"></tbody>
+</table>
+</div>
+
+<script>
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return bytes + " B";
+  else if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + " KB";
+  else return (bytes/1024/1024).toFixed(1) + " MB";
+}
+
+async function update() {
+  try {
+    const s = await fetch('/status').then(r=>r.json());
+    const t = await fetch('/tasks').then(r=>r.json());
+
+    // --- HEAP ---
+    let heapUsed = s.heap;
+    let heapTotal = 320000; // approx ESP32 heap
+    let heapPercent = (heapUsed / heapTotal) * 100;
+
+    document.getElementById("heapText").innerText =
+      formatBytes(heapUsed) + " / " + formatBytes(heapTotal);
+
+    document.getElementById("heapBar").style.width =
+      heapPercent + "%";
+
+    // --- DISK ---
+    let diskPercent = (s.disk_used / s.disk_total) * 100;
+
+    document.getElementById("diskText").innerText =
+      formatBytes(s.disk_used) + " / " + formatBytes(s.disk_total);
+
+    document.getElementById("diskBar").style.width =
+      diskPercent + "%";
+
+    // --- SYSTEM ---
+    document.getElementById("sysText").innerText =
+      "Tasks: " + s.tasks +
+      " | Uptime: " + Math.floor(s.uptime/1000) + "s";
+
+    // --- TASK TABLE ---
+    let html = "";
+
+t.forEach(task => {
+
+  let status = "Stopped";
+  if (task.running) status = task.paused ? "Paused" : "Running";
+
+  html += `<tr>
+    <td>${task.id}</td>
+    <td>${task.name}</td>
+    <td>${status}</td>
+    <td>${task.cpu}</td>
+    <td>
+      ${task.running && !task.paused ? `<button onclick="pauseTask(${task.id})">Pause</button>` : ""}
+      ${task.running && task.paused ? `<button onclick="resumeTask(${task.id})">Resume</button>` : ""}
+      ${task.running ? `<button onclick="killTask(${task.id})">Stop</button>` : ""}
+    </td>
+  </tr>`;
+});
+
+    document.getElementById("tasks").innerHTML = html;
+
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+function killTask(id) {
+  fetch(`/runcommand?command=kill(${id})`);
+}
+
+setInterval(update, 1000);
+update();
+
+</script>
+
+</body>
+</html>

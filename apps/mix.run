@@ -1,0 +1,7 @@
+logmsg(Mixed Task Start)
+delayms(1000)
+calc(50*20)
+delayms(500)
+calc(100+200)
+delayms(1500)
+logmsg(Mixed Task Done)

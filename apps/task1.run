@@ -1,0 +1,5 @@
+logmsg(Task1 Start)
+delayms(1000)
+logmsg(Task1 Running)
+delayms(1000)
+logmsg(Task1 End)

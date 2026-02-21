@@ -1,0 +1,6 @@
+logmsg(Heavy Task Start)
+calc(1000*2000)
+calc(9999*8888)
+calc(12345*6789)
+calc(7777*6666)
+logmsg(Heavy Task Done)

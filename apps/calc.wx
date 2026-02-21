@@ -1,0 +1,4 @@
+// name: Calculator
+// icon: https://clipart-library.com/2023/calculator-clipart-xl.png
+
+open("/apps/calc.html")

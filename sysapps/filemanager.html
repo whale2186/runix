@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>File Manager</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: #121212;
+        color: #e0e0e0;
+        font-family: "Roboto", sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+      }
+      header {
+        width: 100%;
+        max-width: 900px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+      }
+      .btn {
+        background: #bb86fc;
+        border: none;
+        border-radius: 8px;
+        color: #121212;
+        cursor: pointer;
+        padding: 8px 16px;
+        font-weight: 500;
+        transition: background 0.3s;
+      }
+      .btn:hover {
+        background: #985eff;
+      }
+      .card {
+        background: #1e1e1e;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        padding: 20px;
+        width: 100%;
+        max-width: 900px;
+        margin-bottom: 20px;
+      }
+      .breadcrumbs {
+        font-size: 0.9rem;
+        margin-bottom: 0.5em;
+      }
+      .breadcrumbs span {
+        cursor: pointer;
+        color: #4fc3f7;
+      }
+      .breadcrumbs .sep {
+        margin: 0 5px;
+      }
+      #currentPath {
+        font-family: monospace;
+        margin-bottom: 1em;
+      }
+      .actions-form {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 1em;
+        width: 100%;
+        align-items: center;
+      }
+      .actions-form button,
+      .actions-form .progress-container {
+        font-size: 0.9rem;
+        padding: 6px;
+        border-radius: 6px;
+        background: #2c2c2c;
+        color: #e0e0e0;
+      }
+      .actions-form button {
+        border: 1px solid #333;
+        cursor: pointer;
+      }
+      .upload-btn {
+        background: #4caf50;
+        border: none;
+        color: #fff;
+      }
+      .upload-btn:hover {
+        background: #66bb6a;
+      }
+      .create-btn {
+        background: #2196f3;
+        border: none;
+        color: #fff;
+        margin-left: auto;
+      }
+      .newfile-btn {
+        border: none;
+        color: #fff;
+        margin-left: auto;
+      }
+      .create-btn:hover {
+        background: #42a5f5;
+      }
+      .newfile-btn {
+        background: #ff5722;
+        border: none;
+        color: #fff;
+      }
+      .newfile-btn:hover {
+        background: #ff784e;
+      }
+      .progress-container {
+        position: relative;
+        width: 200px;
+        height: 20px;
+        background: #333;
+        border-radius: 10px;
+        overflow: hidden;
+        display: none;
+      }
+      .progress-bar {
+        height: 100%;
+        width: 0;
+        background: #4caf50;
+        transition: width 0.1s;
+      }
+      #uploadStats {
+        font-size: 0.9rem;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+      }
+      th,
+      td {
+        padding: 8px;
+        border-bottom: 1px solid #333;
+        vertical-align: middle;
+      }
+      th {
+        background: #2a2a2a;
+        color: #fff;
+      }
+      tbody tr:nth-child(odd) {
+        background: #1f1f1f;
+      }
+      tbody tr:hover {
+        background: #333;
+      }
+      .btn-small {
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 2px;
+      }
+      .btn-open {
+        background: #7e57c2;
+        color: #fff;
+      }
+      .btn-download {
+        background: #2196f3;
+        color: #fff;
+      }
+      .btn-preview {
+        background: #03dac5;
+        color: #121212;
+      }
+      .btn-delete {
+        background: #e53935;
+        color: #fff;
+      }
+      .btn-rename {
+        background: #ffb300;
+        color: #121212;
+      }
+      .btn-edit {
+        background: #ffc107;
+        color: #121212;
+      }
+      .actions-td {
+        display: flex;
+        gap: 4px;
+        justify-content: center;
+        align-items: center;
+        padding: 4px;
+      }
+      #previewSection,
+      #editorSection {
+        display: none;
+      }
+      #previewContent,
+      #editorArea {
+        background: #2a2a2a;
+        color: #e0e0e0;
+        padding: 12px;
+        border-radius: 6px;
+        max-height: 400px;
+        overflow-y: auto;
+        width: 100%;
+      }
+      #previewContent pre,
+      #editorArea {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        font-family: monospace;
+        border: none;
+        resize: none;
+      }
+      #previewContent img,
+      #previewContent video,
+      #previewContent audio {
+        max-width: 100%;
+        margin-bottom: 10px;
+        outline: none;
+      }
+      #editorControls {
+        margin-top: 10px;
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>File Manager</h1>
+      <div>
+        <button id="homeBtn" class="btn">🏠 Root</button>
+        <button id="upBtn" class="btn">🔼 Up</button>
+      </div>
+    </header>
+
+    <div class="card">
+      <div class="breadcrumbs" id="breadcrumbBar"></div>
+      <div id="currentPath"></div>
+      <div class="actions-form">
+        <button id="uploadBtn" class="upload-btn">Upload</button>
+        <div class="progress-container" id="progressContainer">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div id="uploadStats"></div>
+        <button id="newFileBtn" class="newfile-btn">New File</button>
+        <button id="createBtn" class="create-btn">Create Folder</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th style="width: 100px">Size</th>
+            <th style="width: 180px; text-align: center">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="fileTable"></tbody>
+      </table>
+    </div>
+
+    <div id="previewSection" class="card">
+      <h2 style="margin-bottom: 10px">Preview</h2>
+      <div id="previewContent"></div>
+    </div>
+
+    <div id="editorSection" class="card">
+      <h2 style="margin-bottom: 10px">Editor</h2>
+      <textarea id="editorArea" rows="15"></textarea>
+      <div id="editorControls">
+        <button id="saveBtn" class="btn">Save</button>
+        <button id="cancelBtn" class="btn">Cancel</button>
+      </div>
+    </div>
+
+    <script>
+      let currentDir = "/",
+        editingPath = null;
+      const fileTable = document.getElementById("fileTable"),
+        pathDisplay = document.getElementById("currentPath"),
+        breadcrumbBar = document.getElementById("breadcrumbBar"),
+        previewSection = document.getElementById("previewSection"),
+        previewContent = document.getElementById("previewContent"),
+        editorSection = document.getElementById("editorSection"),
+        editorArea = document.getElementById("editorArea"),
+        homeBtn = document.getElementById("homeBtn"),
+        upBtn = document.getElementById("upBtn"),
+        uploadBtn = document.getElementById("uploadBtn"),
+        newFileBtn = document.getElementById("newFileBtn"),
+        createBtn = document.getElementById("createBtn"),
+        progressContainer = document.getElementById("progressContainer"),
+        progressBar = document.getElementById("progressBar"),
+        uploadStats = document.getElementById("uploadStats"),
+        saveBtn = document.getElementById("saveBtn"),
+        cancelBtn = document.getElementById("cancelBtn");
+
+      function buildPath(name) {
+        return (currentDir === "/" ? "" : currentDir) + "/" + name;
+      }
+      function formatBytes(b) {
+        if (b < 1024) return b + " B";
+        const u = ["KB", "MB", "GB", "TB"];
+        let i = -1;
+        do {
+          b /= 1024;
+          i++;
+        } while (b >= 1024 && i < u.length - 1);
+        return b.toFixed(1) + " " + u[i];
+      }
+      function updateBreadcrumbs() {
+        const parts = currentDir.split("/").filter((p) => p),
+          html = ['<span data-path="/">root</span>'];
+        let acc = "";
+        parts.forEach((p) => {
+          acc += "/" + p;
+          html.push(
+            '<span class="sep">/</span><span data-path="' +
+              acc +
+              '">' +
+              p +
+              "</span>"
+          );
+        });
+        breadcrumbBar.innerHTML = html.join("");
+        breadcrumbBar.querySelectorAll("span[data-path]").forEach((el) =>
+          el.addEventListener("click", () => {
+            currentDir = el.dataset.path;
+            refreshFiles();
+          })
+        );
+      }
+      function parentDir(p) {
+        if (p === "/") return "/";
+        const ps = p.split("/").filter((x) => x);
+        ps.pop();
+        return "/" + ps.join("/");
+      }
+      function showPath() {
+        pathDisplay.textContent = currentDir;
+        updateBreadcrumbs();
+      }
+      function refreshFiles() {
+        previewSection.style.display = "none";
+        editorSection.style.display = "none";
+        showPath();
+        fetch("/list?dir=" + encodeURIComponent(currentDir))
+          .then((r) => r.json())
+          .then((data) => {
+            fileTable.innerHTML = "";
+            data.forEach((item) => {
+              const tr = document.createElement("tr"),
+                nameTd = document.createElement("td"),
+                sizeTd = document.createElement("td"),
+                actTd = document.createElement("td");
+              actTd.classList.add("actions-td");
+              const full = buildPath(item.name),
+                icon = item.isDir ? "📁" : "📄";
+              nameTd.innerHTML =
+                icon +
+                " <strong>" +
+                item.name +
+                (item.isDir ? "/" : "") +
+                "</strong>";
+              nameTd.style.cursor = "pointer";
+              nameTd.addEventListener("click", () =>
+                item.isDir
+                  ? ((currentDir = full), refreshFiles())
+                  : (window.location.href =
+                      "/open?path=" + encodeURIComponent(full))
+              );
+              sizeTd.textContent = item.isDir ? "-" : formatBytes(item.size);
+              let btns = "";
+              if (item.isDir)
+                btns += '<button class="btn-small btn-open">📂</button>';
+              else {
+                btns += '<button class="btn-small btn-edit">🛠️</button>';
+                if (item.name.endsWith(".run"))
+                  btns += '<button class="btn-small btn-run">🚀</button>';
+                btns +=
+                  '<button class="btn-small btn-download">📥</button><button class="btn-small btn-preview">🔍</button>';
+              }
+              btns +=
+                '<button class="btn-small btn-delete">🗑️</button><button class="btn-small btn-rename">📝</button>';
+              actTd.innerHTML = btns;
+              if (item.isDir)
+                actTd
+                  .querySelector(".btn-open")
+                  .addEventListener("click", () => {
+                    currentDir = full;
+                    refreshFiles();
+                  });
+              else {
+                actTd
+                  .querySelector(".btn-edit")
+                  .addEventListener("click", () => {
+                    editingPath = full;
+                    fetch("/open?path=" + encodeURIComponent(full))
+                      .then((r) => r.text())
+                      .then((txt) => {
+                        editorArea.value = txt;
+                        editorSection.style.display = "block";
+                        editorSection.scrollIntoView({ behavior: "smooth" });
+                      });
+                  });
+                actTd
+                  .querySelector(".btn-download")
+                  .addEventListener(
+                    "click",
+                    () =>
+                      (window.location.href =
+                        "/download?path=" + encodeURIComponent(full))
+                  );
+                actTd
+                  .querySelector(".btn-preview")
+                  .addEventListener("click", () => {
+                    previewContent.innerHTML = "";
+                    const ext = item.name.split(".").pop().toLowerCase();
+                    if (
+                      ["png", "jpg", "jpeg", "gif", "bmp", "webp"].includes(ext)
+                    ) {
+                      const img = new Image();
+                      img.src = "/open?path=" + encodeURIComponent(full);
+                      previewContent.appendChild(img);
+                    } else if (["mp4", "webm", "ogg"].includes(ext)) {
+                      const vid = document.createElement("video");
+                      vid.controls = true;
+                      vid.src = "/open?path=" + encodeURIComponent(full);
+                      previewContent.appendChild(vid);
+                    } else if (["mp3", "wav", "ogg"].includes(ext)) {
+                      const aud = document.createElement("audio");
+                      aud.controls = true;
+                      aud.src = "/open?path=" + encodeURIComponent(full);
+                      previewContent.appendChild(aud);
+                    } else {
+                      fetch("/open?path=" + encodeURIComponent(full))
+                        .then((r) => r.text())
+                        .then((t) => {
+                          const pre = document.createElement("pre");
+                          pre.textContent = t;
+                          previewContent.appendChild(pre);
+                        });
+                    }
+                    previewSection.style.display = "block";
+                    previewSection.scrollIntoView({ behavior: "smooth" });
+                  });
+                if (item.name.endsWith(".run"))
+                  actTd
+                    .querySelector(".btn-run")
+                    .addEventListener("click", () =>
+                    fetch("/runcommand?command=" + encodeURIComponent(`runbg("${full}")`)).then(() => refreshFiles())
+                    );
+              }
+              actTd
+                .querySelector(".btn-rename")
+                .addEventListener("click", () => {
+                  const n = prompt('Rename "' + item.name + '" to:', item.name);
+                  if (n && n !== item.name)
+                    fetch(
+                      "/rename?from=" +
+                        encodeURIComponent(full) +
+                        "&to=" +
+                        encodeURIComponent(buildPath(n))
+                    ).then(() => refreshFiles());
+                });
+              actTd
+                .querySelector(".btn-delete")
+                .addEventListener("click", () =>
+                  fetch("/delete?path=" + encodeURIComponent(full)).then(() =>
+                    refreshFiles()
+                  )
+                );
+              tr.append(nameTd, sizeTd, actTd);
+              fileTable.appendChild(tr);
+            });
+          });
+      }
+
+      uploadBtn.addEventListener("click", () => {
+        const inp = document.createElement("input");
+        inp.type = "file";
+        inp.onchange = () => {
+          const file = inp.files[0];
+          if (!file) return;
+          progressBar.style.width = "0%";
+          progressContainer.style.display = "block";
+          uploadStats.textContent = "";
+          const xhr = new XMLHttpRequest(),
+            start = Date.now();
+          xhr.upload.addEventListener("progress", (e) => {
+            if (!e.lengthComputable) return;
+            const loaded = e.loaded,
+              total = e.total,
+              pct = ((loaded / total) * 100).toFixed(1);
+            progressBar.style.width = pct + "%";
+            const elapsed = (Date.now() - start) / 1e3,
+              speed = loaded / elapsed,
+              eta = (total - loaded) / speed;
+            uploadStats.textContent =
+              formatBytes(loaded) +
+              " / " +
+              formatBytes(total) +
+              " ‒ " +
+              formatBytes(speed) +
+              "/s ‒ ETA: " +
+              Math.ceil(eta) +
+              "s";
+          });
+          xhr.onreadystatechange = () => {
+            if (xhr.readyState === 4)
+              setTimeout(() => {
+                progressContainer.style.display = "none";
+                uploadStats.textContent = "";
+                refreshFiles();
+              }, 500);
+          };
+          xhr.open(
+            "POST",
+            "/upload?path=" +
+              encodeURIComponent(currentDir === "?" ? "" : currentDir)
+          );
+          const fd = new FormData();
+          fd.append("file", file);
+          xhr.send(fd);
+        };
+        inp.click();
+      });
+
+      newFileBtn.addEventListener("click", () => {
+        const name = prompt("New file name:");
+        if (!name) return;
+        editingPath = buildPath(name);
+        editorArea.value = "";
+        editorSection.style.display = "block";
+        editorSection.scrollIntoView({ behavior: "smooth" });
+      });
+
+      saveBtn.addEventListener("click", () => {
+        const blob = new Blob([editorArea.value], { type: "text/plain" });
+        const fd = new FormData();
+        fd.append("file", blob, editingPath.split("/").pop());
+        fetch("/upload?path=" + encodeURIComponent(currentDir), {
+          method: "POST",
+          body: fd,
+        }).then(() => {
+          editorSection.style.display = "none";
+          refreshFiles();
+        });
+      });
+
+      cancelBtn.addEventListener("click", () => {
+        editorSection.style.display = "none";
+      });
+
+      createBtn.addEventListener("click", () => {
+        const name = prompt("Enter new folder name:");
+        if (!name) return;
+        fetch("/mkdir?path=" + encodeURIComponent(buildPath(name))).then(() =>
+          refreshFiles()
+        );
+      });
+
+      homeBtn.addEventListener("click", () => {
+        currentDir = "/";
+        refreshFiles();
+      });
+      upBtn.addEventListener("click", () => {
+        currentDir = parentDir(currentDir);
+        refreshFiles();
+      });
+      refreshFiles();
+    </script>
+  </body>
+</html>

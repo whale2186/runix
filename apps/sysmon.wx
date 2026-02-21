@@ -1,0 +1,4 @@
+// name: System Monitor
+// icon: https://cdn-icons-png.flaticon.com/512/683/683866.png
+
+open("/apps/sysmon.html")

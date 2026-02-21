@@ -1,0 +1,3 @@
+runbg("/apps/task1.run")
+runbg("/apps/task2.run")
+runbg("/apps/heavy.run")

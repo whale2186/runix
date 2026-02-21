@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Calculator</title>
+
+<style>
+body {
+  background:#121212;
+  color:#fff;
+  font-family:sans-serif;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+
+.calc {
+  background:#1e1e1e;
+  padding:20px;
+  border-radius:12px;
+  width:260px;
+}
+
+.display {
+  width:100%;
+  height:50px;
+  background:#000;
+  color:#0f0;
+  font-size:20px;
+  text-align:right;
+  padding:10px;
+  margin-bottom:10px;
+  border-radius:6px;
+}
+
+.grid {
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+}
+
+button {
+  padding:15px;
+  font-size:16px;
+  border:none;
+  border-radius:6px;
+  background:#2c2c2c;
+  color:#fff;
+  cursor:pointer;
+}
+
+button:hover { background:#3a3a3a; }
+
+.equal { background:#bb86fc; }
+.clear { background:#cf6679; }
+</style>
+</head>
+
+<body>
+
+<div class="calc">
+  <div id="display" class="display">0</div>
+
+  <div class="grid">
+    <button onclick="press('7')">7</button>
+    <button onclick="press('8')">8</button>
+    <button onclick="press('9')">9</button>
+    <button onclick="press('/')">÷</button>
+
+    <button onclick="press('4')">4</button>
+    <button onclick="press('5')">5</button>
+    <button onclick="press('6')">6</button>
+    <button onclick="press('*')">×</button>
+
+    <button onclick="press('1')">1</button>
+    <button onclick="press('2')">2</button>
+    <button onclick="press('3')">3</button>
+    <button onclick="press('-')">−</button>
+
+    <button onclick="press('0')">0</button>
+    <button onclick="press('.')">.</button>
+    <button class="equal" onclick="calculate()">=</button>
+    <button onclick="press('+')">+</button>
+
+    <button class="clear" onclick="clearDisplay()" style="grid-column:span 4;">C</button>
+  </div>
+</div>
+
+<script>
+
+let exp = "";
+
+function press(val) {
+  exp += val;
+  update();
+}
+
+function update() {
+  document.getElementById("display").innerText = exp || "0";
+}
+
+function clearDisplay() {
+  exp = "";
+  update();
+}
+
+async function calculate() {
+  try {
+    // send to ESP32 calc
+    await fetch(`/runcommand?command=calc(${encodeURIComponent(exp)})`);
+
+    // fetch logs to get result
+    const logs = await fetch("/logs").then(r=>r.text());
+
+    // extract last CALC line
+    const lines = logs.trim().split("\n").reverse();
+
+    for (let line of lines) {
+      if (line.includes("CALC:")) {
+        let res = line.split("=")[1].trim();
+        exp = res;
+        update();
+        return;
+      }
+    }
+
+    exp = "Error";
+    update();
+
+  } catch {
+    exp = "Error";
+    update();
+  }
+}
+
+</script>
+
+</body>
+</html>
