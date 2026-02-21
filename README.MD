@@ -3,7 +3,7 @@
 
 A lightweight, web-driven operating system prototype built for the ESP32.  
 This project demonstrates cooperative multitasking, a simple scripting engine, web-based file management, and live system monitoring — all running on an ESP32 using LittleFS.
-![Image](https://github.com/user-attachments/assets/cd230cd9-9fb1-42a8-82e0-99da21775b3b)
+<img width="1920" height="1080" alt="Image" src="https://github.com/user-attachments/assets/cd230cd9-9fb1-42a8-82e0-99da21775b3b" />
 ---
 ## Showcase
 
