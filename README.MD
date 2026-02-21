@@ -11,7 +11,7 @@ This project demonstrates cooperative multitasking, a simple scripting engine, w
 ---
 ## Showcase
 
-
+![Video](https://raw.githubusercontent.com/whale2186/runix/refs/heads/main/res/showcase.mp4)
 ---
 
 ## Repository contents
