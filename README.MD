@@ -5,8 +5,8 @@ A lightweight, web-driven operating system prototype built for the ESP32.
 This project demonstrates cooperative multitasking, a simple scripting engine, web-based file management, and live system monitoring — all running on an ESP32 using LittleFS.
 
 ---
-##Showcase
-https://raw.githubusercontent.com/whale2186/runix/refs/heads/main/res/showcase.mp4
+## Showcase
+
 
 ---
 
@@ -175,24 +175,19 @@ Leave space below for screenshots and links to your final demonstration recordin
 ### Screenshots
 
 1. Dashboard
-   - `SLOT: screenshot/dashboard.png`
+<img width="1920" height="1080" alt="Image" src="https://github.com/user-attachments/assets/a9fd4f8c-4eb2-4b00-94eb-98aed0853d60" />
 
 2. System monitor
-   - `SLOT: screenshot/sysmon.png`
+  <img width="1920" height="1080" alt="Image" src="https://github.com/user-attachments/assets/fb67ee24-7996-45e6-bf65-e8c93c8f97ca" />
 
-3. File manager and run button
-   - `SLOT: screenshot/filemanager.png`
+3. Terminal
+<img width="1920" height="1080" alt="Image" src="https://github.com/user-attachments/assets/094321d3-a224-49ef-9daa-a45b57ada153" />
 
-### Final recording
-
-- `SLOT: recording/final_demo.mp4` — link to your recording or cloud storage location.
+4. File manager
+<img width="1920" height="1080" alt="Image" src="https://github.com/user-attachments/assets/1e3e831c-56e3-41f7-a445-0388a9450afa" />
 
 ---
 
 ## Notes
 
-- This project is intended for learning and demonstration. It is not suitable for production control tasks without additional safety and security measures.
-- If you want, I can produce:
-  - a LittleFS image with example apps included,
-  - a script to batch-upload files to LittleFS,
-  - a pared-down Arduino sketch for a smaller memory footprint.
+- This project is intended for learning and demonstration. 
