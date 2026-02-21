@@ -17,7 +17,7 @@ https://github.com/user-attachments/assets/aa02f79a-840b-4d3d-98e1-c4d44e738aa5
 
 ## Repository contents
 
-- `runix.ino` — Main Arduino program (task scheduler, HTTP server, script engine).
+- `runix.ino` — Main program (task scheduler, HTTP server, script engine).
 - `/apps` — Example scripts and web apps used by the dashboard (`*.run`, `*.wx`, `*.html`).
 - `/sysapps` — Endpoint mappings created at runtime.
 - `/runix.bin` — Precompiled binary that can be uploaded directly use SSID: SSID PASSWORD: PASSWORD.
